@@ -1,0 +1,20 @@
+version: 2
+
+unit_tests:
+  - name: transaction_measures_exclude_transfers_and_uncategorised
+    model: fct_transactions
+    given:
+      - input: ref('int_transactions_categorised')
+        rows:
+          - {transaction_id: tx_income, transaction_date: 2023-07-01, account_slug: example_account, description: Salary, normalized_description: SALARY, merchant_name: Employer, category: Income, subcategory: Salary, direction: credit, amount: 1000.00, is_transfer: false, categorisation_method: rule}
+          - {transaction_id: tx_transfer, transaction_date: 2023-07-02, account_slug: example_account, description: Card Payment, normalized_description: CARD PAYMENT, merchant_name: Card Payment, category: Transfers, subcategory: Internal Transfer, direction: debit, amount: -250.00, is_transfer: true, categorisation_method: rule}
+          - {transaction_id: tx_unknown, transaction_date: 2023-07-03, account_slug: example_account, description: Unknown Shop, normalized_description: UNKNOWN SHOP, merchant_name: Unknown Shop, category: Uncategorised, subcategory: Uncategorised, direction: debit, amount: -40.00, is_transfer: false, categorisation_method: uncategorised}
+      - input: ref('int_accounts')
+        rows:
+          - {account_slug: example_account, account_name: Example Account, bank_name: Example Bank, account_type: credit, currency: SGD}
+    expect:
+      rows:
+        - {transaction_id: tx_income, currency: SGD, inflow_amount: 1000.00, outflow_amount: 0.00, income_amount: 1000.00, spend_amount: 0.00, is_categorised: true}
+        - {transaction_id: tx_transfer, currency: SGD, inflow_amount: 0.00, outflow_amount: 250.00, income_amount: 0.00, spend_amount: 0.00, is_categorised: true}
+        - {transaction_id: tx_unknown, currency: SGD, inflow_amount: 0.00, outflow_amount: 40.00, income_amount: 0.00, spend_amount: 0.00, is_categorised: false}
+

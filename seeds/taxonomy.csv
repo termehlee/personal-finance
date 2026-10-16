@@ -1,0 +1,7 @@
+taxonomy_key,category,subcategory,enabled
+income_salary,Income,Salary,true
+income_other,Income,Other Income,true
+food_dining,Food,Dining,true
+food_groceries,Food,Groceries,true
+transport_public,Transport,Public Transport,true
+transfer_internal,Transfers,Internal Transfer,true

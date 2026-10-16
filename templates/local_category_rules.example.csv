@@ -1,0 +1,2 @@
+rule_key,match_type,match_value,taxonomy_key,priority,is_transfer,enabled
+rent_contains,contains,MONTHLY RENT,housing_rent,100,false,true

@@ -1,0 +1,5 @@
+rule_key,match_type,match_value,taxonomy_key,priority,is_transfer,enabled
+salary_exact,exact,SALARY,income_salary,100,false,true
+payment_transfer,contains,PAYMENT BY INTERNET,transfer_internal,100,true,true
+transit_contains,contains,TRANSIT,transport_public,50,false,true
+breakfast_contains,contains,BREAKFAST,food_dining,40,false,true

@@ -1,0 +1,36 @@
+name: personal_finance
+version: "0.1.0"
+config-version: 2
+profile: personal_finance
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+clean-targets: ["target", "dbt_packages"]
+
+# Nothing user-specific is hardcoded: override via env vars (.env) or --vars.
+vars:
+  base_currency: "{{ env_var('FIN_BASE_CURRENCY', 'USD') }}"
+  # Where Monopoly output is loaded from (see scripts/load_duckdb.py)
+  raw_schema: "{{ env_var('FIN_RAW_SCHEMA', 'raw') }}"
+  # Placeholder knobs, final list decided in model brainstorm
+  fiscal_year_start_month: "{{ env_var('FIN_FISCAL_YEAR_START_MONTH', '1') }}"
+  uncategorised_label: "Uncategorised"
+  enable_local_seeds: false
+
+models:
+  personal_finance:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts
+
+seeds:
+  personal_finance:
+    +schema: seeds

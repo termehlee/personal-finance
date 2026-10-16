@@ -1,0 +1,36 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: "{{ env_var('FIN_RAW_SCHEMA', 'raw') }}"
+    tables:
+      - name: raw_transactions
+        description: Transaction rows flattened from Monopoly statement JSON.
+        columns:
+          - name: transaction_id
+            data_tests:
+              - not_null
+          - name: file_sha256
+            data_tests:
+              - not_null
+          - name: account_slug
+            data_tests:
+              - not_null
+          - name: transaction_date
+            data_tests:
+              - not_null
+          - name: direction
+            data_tests:
+              - accepted_values:
+                  arguments:
+                    values: [debit, credit]
+      - name: raw_statements
+        description: One row per statement file parsed by Monopoly.
+        columns:
+          - name: file_sha256
+            data_tests:
+              - not_null
+              - unique
+          - name: account_slug
+            data_tests:
+              - not_null

@@ -1,0 +1,23 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: detect-private-key
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: local
+    hooks:
+      - id: block-private-files
+        name: Block statements, PDFs, DuckDB files, .env, local_*.csv
+        entry: scripts/check_private_files.py
+        language: python
+        pass_filenames: true
+      - id: scan-for-pii
+        name: Scan CSV/seed/sample files for PII patterns
+        entry: scripts/check_pii.py
+        language: python
+        files: \.(csv|ya?ml|md|sql)$
+        pass_filenames: true

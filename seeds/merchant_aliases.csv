@@ -1,0 +1,3 @@
+alias_key,match_type,match_value,merchant_name,taxonomy_key,enabled
+payment_internet,contains,PAYMENT BY INTERNET,Internet Payment,transfer_internal,true
+urban_transit,contains,URBAN TRANSIT,Urban Transit Co.,transport_public,true

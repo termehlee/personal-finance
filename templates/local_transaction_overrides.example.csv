@@ -1,0 +1,2 @@
+transaction_id,merchant_name,category,subcategory,is_transfer,enabled
+replace-with-transaction-id,Example Merchant,Food,Dining,false,true

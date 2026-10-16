@@ -1,0 +1,7 @@
+# dbt Charts (dct) project config. Boards live in charts/ (tool convention).
+# Credentials are reused from profiles.yml. Switch target to `real` locally to view real data.
+sources:
+  finance:
+    type: dbt_profile
+    profile: personal_finance
+    target: sample

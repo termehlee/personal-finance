@@ -1,0 +1,70 @@
+version: 2
+
+unit_tests:
+  - name: categorisation_precedence_override_rule_alias
+    model: int_transactions_categorised
+    given:
+      - input: ref('int_transactions_deduplicated')
+        rows:
+          - {transaction_id: tx_override, description: Override Cafe, normalized_description: OVERRIDE CAFE}
+          - {transaction_id: tx_rule, description: Morning Breakfast, normalized_description: MORNING BREAKFAST}
+          - {transaction_id: tx_alias, description: Urban Transit Co, normalized_description: URBAN TRANSIT CO}
+          - {transaction_id: tx_unknown, description: Unknown Shop, normalized_description: UNKNOWN SHOP}
+      - input: ref('int_merchant_aliases')
+        rows:
+          - {alias_key: breakfast_alias, match_type: contains, match_value: BREAKFAST, merchant_name: Breakfast Alias, taxonomy_key: food_dining}
+          - {alias_key: transit_alias, match_type: contains, match_value: URBAN TRANSIT, merchant_name: Urban Transit, taxonomy_key: transport_public}
+      - input: ref('int_category_rules')
+        rows:
+          - {rule_key: breakfast_rule, match_type: contains, match_value: BREAKFAST, taxonomy_key: food_dining, priority: 50, is_transfer: false}
+      - input: ref('int_taxonomy')
+        rows:
+          - {taxonomy_key: food_dining, category: Food, subcategory: Dining}
+          - {taxonomy_key: transport_public, category: Transport, subcategory: Public Transport}
+      - input: ref('int_transaction_overrides')
+        format: sql
+        rows: |
+          select
+              'tx_override'::varchar as transaction_id,
+              'Manual Cafe'::varchar as merchant_name,
+              'Lifestyle'::varchar as category,
+              'Treats'::varchar as subcategory,
+              false as is_transfer,
+              true as enabled
+    expect:
+      rows:
+        - {transaction_id: tx_override, merchant_name: Manual Cafe, category: Lifestyle, subcategory: Treats, categorisation_method: override}
+        - {transaction_id: tx_rule, merchant_name: Breakfast Alias, category: Food, subcategory: Dining, categorisation_method: rule}
+        - {transaction_id: tx_alias, merchant_name: Urban Transit, category: Transport, subcategory: Public Transport, categorisation_method: alias}
+        - {transaction_id: tx_unknown, merchant_name: Unknown Shop, category: Uncategorised, subcategory: Uncategorised, categorisation_method: uncategorised}
+
+  - name: categorisation_rule_priority_and_specificity
+    model: int_transactions_categorised
+    given:
+      - input: ref('int_transactions_deduplicated')
+        rows:
+          - {transaction_id: tx_priority, description: Salary, normalized_description: SALARY}
+      - input: ref('int_merchant_aliases')
+        rows: []
+      - input: ref('int_category_rules')
+        rows:
+          - {rule_key: contains_salary, match_type: contains, match_value: SALARY, taxonomy_key: income_other, priority: 100, is_transfer: false}
+          - {rule_key: exact_salary, match_type: exact, match_value: SALARY, taxonomy_key: income_salary, priority: 100, is_transfer: false}
+      - input: ref('int_taxonomy')
+        rows:
+          - {taxonomy_key: income_other, category: Income, subcategory: Other Income}
+          - {taxonomy_key: income_salary, category: Income, subcategory: Salary}
+      - input: ref('int_transaction_overrides')
+        format: sql
+        rows: |
+          select
+              null::varchar as transaction_id,
+              null::varchar as merchant_name,
+              null::varchar as category,
+              null::varchar as subcategory,
+              null::boolean as is_transfer,
+              null::boolean as enabled
+          where false
+    expect:
+      rows:
+        - {transaction_id: tx_priority, category: Income, subcategory: Salary, categorisation_method: rule, categorisation_key: exact_salary}

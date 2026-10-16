@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: int_accounts
+    description: Effective account metadata after optional local overrides.
+    columns:
+      - name: account_slug
+        data_tests: [not_null, unique]
+      - name: currency
+        data_tests: [not_null]
+  - name: int_taxonomy
+    description: Effective two-level category taxonomy.
+    columns:
+      - name: taxonomy_key
+        data_tests: [not_null, unique]
+  - name: int_merchant_aliases
+    description: Effective merchant aliases supporting exact and contains matches.
+    columns:
+      - name: alias_key
+        data_tests: [not_null, unique]
+      - name: match_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [exact, contains]
+  - name: int_category_rules
+    description: Effective category rules ordered by priority.
+    columns:
+      - name: rule_key
+        data_tests: [not_null, unique]
+      - name: match_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [exact, contains]
+      - name: taxonomy_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('int_taxonomy')
+                field: taxonomy_key
+  - name: int_transactions_deduplicated
+    description: Exact-ID deduplicated transactions with conservative duplicate-candidate flags.
+    columns:
+      - name: transaction_id
+        data_tests: [not_null, unique]
+  - name: int_transactions_categorised
+    description: Transactions resolved through overrides, rules, aliases, then Uncategorised.
+    columns:
+      - name: transaction_id
+        data_tests: [not_null, unique]
+      - name: categorisation_method
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [override, rule, alias, uncategorised]

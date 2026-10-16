@@ -1,0 +1,2 @@
+account_slug,account_name,bank_name,account_type,currency,enabled
+my_sgd_card,My SGD Card,Example Bank,credit,SGD,true

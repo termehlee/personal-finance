@@ -1,0 +1,2 @@
+alias_key,match_type,match_value,merchant_name,taxonomy_key,enabled
+example_grocer,contains,EXAMPLE GROCER,Example Grocer,food_groceries,true

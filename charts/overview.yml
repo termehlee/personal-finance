@@ -1,0 +1,286 @@
+title: Personal Finance
+notes: Monthly cash flow, categories, merchants, and uncategorised transactions by currency.
+source: finance
+
+queries:
+  monthly:
+    sql: |
+      select
+          month,
+          currency,
+          income_amount,
+          spend_amount,
+          net_amount,
+          savings_rate,
+          transaction_count,
+          uncategorised_transaction_count
+      from main_marts.fct_monthly_summary
+      order by month, currency
+
+  category_monthly:
+    sql: |
+      select
+          month,
+          currency,
+          category,
+          subcategory,
+          income_amount,
+          spend_amount,
+          transaction_count
+      from main_marts.fct_monthly_category
+      order by month, spend_amount desc, income_amount desc
+
+  category_totals:
+    sql: |
+      select
+          currency,
+          category,
+          sum(spend_amount) as spend_amount,
+          sum(income_amount) as income_amount,
+          sum(transaction_count) as transaction_count
+      from main_marts.fct_monthly_category
+      group by 1, 2
+      order by spend_amount desc, income_amount desc
+
+  category_spend_mix:
+    sql: |
+      select
+          currency,
+          category,
+          sum(spend_amount) as spend_amount
+      from main_marts.fct_transactions
+      where spend_amount > 0
+        and currency = (
+            select currency
+            from main_marts.fct_transactions
+            group by currency
+            order by count(*) desc, currency
+            limit 1
+        )
+      group by 1, 2
+      order by spend_amount desc
+
+  merchant_monthly:
+    sql: |
+      select
+          month,
+          currency,
+          merchant_name,
+          spend_amount,
+          transaction_count
+      from main_marts.fct_top_merchants
+      order by month, spend_amount desc
+
+  merchant_totals:
+    sql: |
+      select
+          currency,
+          merchant_name,
+          sum(spend_amount) as spend_amount,
+          sum(transaction_count) as transaction_count
+      from main_marts.fct_top_merchants
+      where currency = (
+          select currency
+          from main_marts.fct_transactions
+          group by currency
+          order by count(*) desc, currency
+          limit 1
+      )
+      group by 1, 2
+      order by spend_amount desc
+      limit 10
+
+  categorisation_coverage:
+    sql: |
+      select
+          currency,
+          case
+              when is_transfer then 'Transfer'
+              when not is_categorised then 'Needs review'
+              else 'Categorised'
+          end as status,
+          count(*) as transaction_count
+      from main_marts.fct_transactions
+      where currency = (
+          select currency
+          from main_marts.fct_transactions
+          group by currency
+          order by count(*) desc, currency
+          limit 1
+      )
+      group by 1, 2
+      order by transaction_count desc
+
+  uncategorised:
+    sql: |
+      select
+          transaction_date,
+          account_slug,
+          currency,
+          description,
+          merchant_name,
+          direction,
+          amount,
+          is_duplicate_candidate,
+          source_file
+      from main_marts.rpt_uncategorised
+      order by transaction_date desc, abs(amount) desc
+
+  uncategorised_summary:
+    sql: |
+      select
+          currency,
+          direction,
+          count(*) as transaction_count,
+          sum(abs(amount)) as absolute_amount
+      from main_marts.rpt_uncategorised
+      group by 1, 2
+      order by absolute_amount desc
+
+charts:
+  cash_flow:
+    type: line
+    query: monthly
+    title: Monthly Income and Spend
+    x: month
+    y: [income_amount, spend_amount]
+    color: currency
+    style:
+      number_format: currency
+      time_format: "%b %Y"
+
+  net_amount:
+    type: bar
+    query: monthly
+    title: Monthly Net Amount
+    x: month
+    y: net_amount
+    color: currency
+    style:
+      orientation: vertical
+      number_format: currency
+      time_format: "%b %Y"
+
+  monthly_detail:
+    type: table
+    query: monthly
+    title: Monthly Detail
+    style:
+      columns:
+        income_amount:
+          format: currency_full
+        spend_amount:
+          format: currency_full
+        net_amount:
+          format: currency_full
+        savings_rate:
+          format: percent
+
+  spend_by_category:
+    type: bar
+    query: category_totals
+    title: Spend by Category
+    x: category
+    y: spend_amount
+    color: currency
+    style:
+      orientation: horizontal
+      number_format: currency
+
+  category_spend_donut:
+    type: donut
+    query: category_spend_mix
+    title: Spend Mix by Category
+    subtitle: Most active currency; categorised spend only
+    theta: spend_amount
+    color: category
+    total:
+      label: Total Spend
+    style:
+      total:
+        value:
+          format: currency
+
+  monthly_category_detail:
+    type: table
+    query: category_monthly
+    title: Monthly Category Detail
+    style:
+      columns:
+        income_amount:
+          format: currency_full
+        spend_amount:
+          format: currency_full
+
+  top_merchants:
+    type: bar
+    query: merchant_totals
+    title: Top 10 Merchants by Spend
+    subtitle: Most active currency
+    x: merchant_name
+    y: spend_amount
+    sort:
+      by: spend_amount
+      order: desc
+    style:
+      orientation: horizontal
+      number_format: currency
+
+  coverage:
+    type: donut
+    query: categorisation_coverage
+    title: Categorisation Coverage
+    subtitle: Transaction count in the most active currency
+    theta: transaction_count
+    color: status
+    total:
+      label: Transactions
+    style:
+      total:
+        value:
+          format: integer
+
+  merchant_detail:
+    type: table
+    query: merchant_monthly
+    title: Monthly Merchant Detail
+    style:
+      columns:
+        spend_amount:
+          format: currency_full
+
+  uncategorised_amount:
+    type: bar
+    query: uncategorised_summary
+    title: Uncategorised Amount
+    x: direction
+    y: absolute_amount
+    color: currency
+    style:
+      orientation: vertical
+      number_format: currency
+
+  review_queue:
+    type: table
+    query: uncategorised
+    title: Transactions to Review
+    style:
+      columns:
+        amount:
+          format: currency_full
+
+rows:
+  - cols:
+      - cash_flow
+      - net_amount
+  - monthly_detail
+  - cols:
+      - category_spend_donut
+      - top_merchants
+  - cols:
+      - spend_by_category
+      - coverage
+  - monthly_category_detail
+  - merchant_detail
+  - uncategorised_amount
+  - review_queue

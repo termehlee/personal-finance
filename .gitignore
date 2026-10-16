@@ -1,0 +1,34 @@
+# Real financial data: never commit
+statements/*
+!statements/.gitkeep
+data/monopoly_out/
+data/*.duckdb
+*.pdf
+!data/sample/statements/**/*.pdf
+*.csv
+!seeds/*.csv
+!templates/*.csv
+!data/sample/*.csv
+seeds/local_*.csv
+**/local_*.csv
+!templates/local_*.example.csv
+*.duckdb
+*.duckdb.wal
+*.db
+
+# Secrets / config
+.env
+.env.*
+!.env.example
+profiles.yml
+
+# Tooling
+target/
+dbt_packages/
+logs/
+.venv/
+__pycache__/
+renders/
+.DS_Store
+.user.yml
+dbt_internal_packages/

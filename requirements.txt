@@ -1,0 +1,7 @@
+# Use Python 3.12 (validated). Monopoly needs system poppler (brew install poppler).
+dbt-core~=1.12
+dbt-duckdb
+dbt-charts
+pre-commit
+monopoly-core==0.23.2
+duckdb

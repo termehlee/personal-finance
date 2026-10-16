@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: fct_transactions
+    description: Canonical transaction fact with reporting-safe income and spend measures.
+    columns:
+      - name: transaction_id
+        data_tests: [not_null, unique]
+      - name: currency
+        data_tests: [not_null]
+      - name: direction
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [debit, credit]
+  - name: fct_monthly_summary
+    description: Monthly income, spend, net, and savings rate by currency.
+    columns:
+      - name: month
+        data_tests: [not_null]
+      - name: currency
+        data_tests: [not_null]
+  - name: fct_monthly_category
+    description: Monthly categorised income and spend by currency and taxonomy.
+  - name: fct_top_merchants
+    description: Monthly merchant spend by currency.
+  - name: rpt_uncategorised
+    description: Transaction-grain review queue for uncategorised activity.
